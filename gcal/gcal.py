@@ -11,6 +11,7 @@ import pickle
 import os.path
 import pathlib
 from googleapiclient.discovery import build
+from google.oauth2 import service_account
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import logging
@@ -21,7 +22,12 @@ class GcalHelper:
     def __init__(self):
         self.logger = logging.getLogger('maginkcal')
         # Initialise the Google Calendar using the provided credentials and token
-        SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+        SCOPES = [
+            'https://www.googleapis.com/auth/calendar',
+            'https://www.googleapis.com/auth/calendar.readonly',
+            'https://www.googleapis.com/auth/calendar.events',
+            'https://www.googleapis.com/auth/calendar.events.readonly'
+        ]
         self.currPath = str(pathlib.Path(__file__).parent.absolute())
 
         creds = None
@@ -31,25 +37,26 @@ class GcalHelper:
         if os.path.exists(self.currPath + '/token.pickle'):
             with open(self.currPath + '/token.pickle', 'rb') as token:
                 creds = pickle.load(token)
-        # If there are no (valid) credentials available, let the user log in.
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    self.currPath + '/credentials.json', SCOPES)
-                creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open(self.currPath + '/token.pickle', 'wb') as token:
-                pickle.dump(creds, token)
-
+        ## If there are no (valid) credentials available, let the user log in.
+        #if not creds or not creds.valid:
+        #    if creds and creds.expired and creds.refresh_token:
+        #        creds.refresh(Request())
+        #    else:
+        #        flow = InstalledAppFlow.from_client_secrets_file(
+        #            self.currPath + '/credentials.json', SCOPES)
+        #        creds = flow.run_local_server(port=0)
+        #    # Save the credentials for the next run
+        #    with open(self.currPath + '/token.pickle', 'wb') as token:
+        #        pickle.dump(creds, token)
+        SERVICE_ACCOUNT_FILE = self.currPath + '/credentials.json'
+        creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
         self.service = build('calendar', 'v3', credentials=creds, cache_discovery=False)
 
     def list_calendars(self):
         # helps to retrieve ID for calendars within the account
         # calendar IDs added to config.json will then be queried for retrieval of events
         self.logger.info('Getting list of calendars')
-        calendars_result = self.service.calendarList().list().execute()
+        calendars_result = self.service.calendarList().get(calendarId='primary').execute()
         calendars = calendars_result.get('items', [])
         if not calendars:
             self.logger.info('No calendars found.')

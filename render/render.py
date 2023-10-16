@@ -108,7 +108,8 @@ class RenderHelper:
         # calDict = {'events': eventList, 'calStartDate': calStartDate, 'today': currDate, 'lastRefresh': currDatetime, 'batteryLevel': batteryLevel}
         # first setup list to represent the 5 weeks in our calendar
         calList = []
-        for i in range(35):
+        days_ahead = 9
+        for i in range(days_ahead):
             calList.append([])
 
         # retrieve calendar configuration
@@ -122,7 +123,8 @@ class RenderHelper:
         for event in calDict['events']:
             idx = self.get_day_in_cal(calDict['calStartDate'], event['startDatetime'].date())
             if idx >= 0:
-                calList[idx].append(event)
+                if idx < len(calList):
+                    calList[idx].append(event)
             if event['isMultiday']:
                 idx = self.get_day_in_cal(calDict['calStartDate'], event['endDatetime'].date())
                 if idx < len(calList):
@@ -168,13 +170,14 @@ class RenderHelper:
         cal_events_text = ''
         for i in range(len(calList)):
             currDate = calDict['calStartDate'] + timedelta(days=i)
+            dayOfWeekDisplay = dayOfWeekText[currDate.weekday()]
             dayOfMonth = currDate.day
             if currDate == calDict['today']:
-                cal_events_text += '<li><div class="datecircle">' + str(dayOfMonth) + '</div>\n'
+                cal_events_text += '<li><div class="datecircle">' + dayOfWeekDisplay + ' ' + str(dayOfMonth) + '</div>\n'
             elif currDate.month != calDict['today'].month:
-                cal_events_text += '<li><div class="date text-muted">' + str(dayOfMonth) + '</div>\n'
+                cal_events_text += '<li><div class="date text-muted">' + dayOfWeekDisplay + ' ' + str(dayOfMonth)+ '</div>\n'
             else:
-                cal_events_text += '<li><div class="date">' + str(dayOfMonth) + '</div>\n'
+                cal_events_text += '<li><div class="date">' + dayOfWeekDisplay + ' ' + str(dayOfMonth) + '</div>\n'
 
             for j in range(min(len(calList[i]), maxEventsPerDay)):
                 event = calList[i][j]

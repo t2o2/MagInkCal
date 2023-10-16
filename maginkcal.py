@@ -79,6 +79,8 @@ def main():
 
         renderService = RenderHelper(imageWidth, imageHeight, rotateAngle)
         calBlackImage, calRedImage = renderService.process_inputs(calDict)
+        calRedImage.save('calRedImage.png')
+        calBlackImage.save('calBlackImage.png')
 
         if isDisplayToScreen:
             from display.display import DisplayHelper

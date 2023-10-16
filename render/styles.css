@@ -109,7 +109,8 @@ Calendar Styling */
 
 .calendar ol li {
   float: left;
-  width: 14.28571%;
+  /*width: 14.28571%;*/
+  width: 33.3333%;
 }
 
 .calendar .day-names {
@@ -126,7 +127,7 @@ Calendar Styling */
 
 .calendar .days li {
   /* min-height: 12rem; */
-  min-height: 11.5rem;
+  min-height: 9rem;
 }
 
 .calendar .days li .date {
@@ -136,7 +137,7 @@ Calendar Styling */
 
 .calendar .date {
   text-align: center;
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: bold;
   font-family: "Quattrocento-Regular";
 }
@@ -147,13 +148,13 @@ Calendar Styling */
 
 .datecircle {
     margin: 0rem auto;
-    width:4rem;
-    height:4rem;
-    border-radius:2rem;
+    width:6rem;
+    height:3rem;
+    border-radius:1rem;
     font-family: "Quattrocento-Regular";
-    font-size:3rem;
+    font-size:2rem;
     color:white;
-    line-height: 4rem;
+    line-height: 3rem;
     text-align:center;
     vertical-align: middle;
     background:#ff0000;
