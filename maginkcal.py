@@ -11,8 +11,11 @@ CSS stylesheets in the "render" folder.
 import datetime as dt
 import sys
 
+from PIL import Image
 from pytz import timezone
 from gcal.gcal import GcalHelper
+from inky.auto import auto
+from inky import Inky_Impressions_7
 from render.render import RenderHelper
 from power.power import PowerHelper
 import json
@@ -83,13 +86,17 @@ def main():
         calBlackImage.save('calBlackImage.png')
 
         if isDisplayToScreen:
-            from display.display import DisplayHelper
-            displayService = DisplayHelper(screenWidth, screenHeight)
-            if currDate.weekday() == weekStartDay:
-                # calibrate display once a week to prevent ghosting
-                displayService.calibrate(cycles=0)  # to calibrate in production
-            displayService.update(calBlackImage, calRedImage)
-            displayService.sleep()
+            display = Inky_Impressions_7()
+            image = Image.open("./render/calendar.png")
+            display.set_image(image, saturation=0.5)
+            display.show()
+            #from display.display import DisplayHelper
+            #displayService = DisplayHelper(screenWidth, screenHeight)
+            #if currDate.weekday() == weekStartDay:
+            #    # calibrate display once a week to prevent ghosting
+            #    displayService.calibrate(cycles=0)  # to calibrate in production
+            #displayService.update(calBlackImage, calRedImage)
+            #displayService.sleep()
 
         currBatteryLevel = powerService.get_battery()
         logger.info('Battery level at end: {:.3f}'.format(currBatteryLevel))
