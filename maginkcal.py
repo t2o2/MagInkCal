@@ -9,6 +9,8 @@ There will also be work needed to adjust the calendar rendering for different sc
 CSS stylesheets in the "render" folder.
 """
 import datetime as dt
+import hashlib
+import os
 import sys
 
 from PIL import Image
@@ -20,6 +22,37 @@ from render.render import RenderHelper
 from power.power import PowerHelper
 import json
 import logging
+
+
+def json_dumps(thing):
+    return json.dumps(
+        thing,
+        default=str,
+        ensure_ascii=False,
+        sort_keys=True,
+        indent=None,
+        separators=(',', ':'),
+    )
+
+
+def get_json_hash(val):
+    return hashlib.md5(json_dumps(val).encode('utf-8')).digest()
+
+
+def hasChanged(val):
+    hashFile = 'events.hash'
+    if os.path.exists(hashFile):
+        with open(hashFile, 'r') as f:
+            old_hash = f.read()
+    else:
+        old_hash = 0
+    new_hash = get_json_hash(val).hex()
+    if new_hash != old_hash:
+        with open(hashFile, 'w') as f:
+            f.write(new_hash)
+        return True
+    else:
+        return False
 
 
 def main():
@@ -74,6 +107,12 @@ def main():
         eventList = gcalService.retrieve_events(calendars, calStartDatetime, calEndDatetime, displayTZ, thresholdHours)
         logger.info("Calendar events retrieved in " + str(dt.datetime.now() - start))
 
+        # Check if the event list has changed
+        hasNewEvents = hasChanged(eventList)
+        if not hasNewEvents:
+            logger.info('No new events')
+            return
+
         # Populate dictionary with information to be rendered on e-ink display
         calDict = {'events': eventList, 'calStartDate': calStartDate, 'today': currDate, 'lastRefresh': currDatetime,
                    'batteryLevel': currBatteryLevel, 'batteryDisplayMode': batteryDisplayMode,
@@ -82,21 +121,12 @@ def main():
 
         renderService = RenderHelper(imageWidth, imageHeight, rotateAngle)
         calBlackImage, calRedImage = renderService.process_inputs(calDict)
-        calRedImage.save('calRedImage.png')
-        calBlackImage.save('calBlackImage.png')
 
         if isDisplayToScreen:
             display = Inky_Impressions_7()
             image = Image.open("./render/calendar.png")
             display.set_image(image, saturation=0.5)
             display.show()
-            #from display.display import DisplayHelper
-            #displayService = DisplayHelper(screenWidth, screenHeight)
-            #if currDate.weekday() == weekStartDay:
-            #    # calibrate display once a week to prevent ghosting
-            #    displayService.calibrate(cycles=0)  # to calibrate in production
-            #displayService.update(calBlackImage, calRedImage)
-            #displayService.sleep()
 
         currBatteryLevel = powerService.get_battery()
         logger.info('Battery level at end: {:.3f}'.format(currBatteryLevel))
