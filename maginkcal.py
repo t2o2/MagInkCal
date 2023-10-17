@@ -96,8 +96,9 @@ def main():
         currDatetime = dt.datetime.now(displayTZ)
         logger.info("Time synchronised to {}".format(currDatetime))
         currDate = currDatetime.date()
-        calStartDate = currDate - dt.timedelta(days=((currDate.weekday() + (7 - weekStartDay)) % 7))
-        calEndDate = calStartDate + dt.timedelta(days=(5 * 7 - 1))
+        #calStartDate = currDate - dt.timedelta(days=((currDate.weekday() + (7 - weekStartDay)) % 7))
+        calStartDate = currDate - dt.timedelta(days=1)
+        calEndDate = calStartDate + dt.timedelta(days=(2 * 7 - 1))
         calStartDatetime = displayTZ.localize(dt.datetime.combine(calStartDate, dt.datetime.min.time()))
         calEndDatetime = displayTZ.localize(dt.datetime.combine(calEndDate, dt.datetime.max.time()))
 
@@ -108,7 +109,8 @@ def main():
         logger.info("Calendar events retrieved in " + str(dt.datetime.now() - start))
 
         # Check if the event list has changed
-        hasNewEvents = hasChanged(eventList)
+        tmp_dict = {'date': start.strftime('%Y-%m-%d'), 'event': eventList}
+        hasNewEvents = hasChanged(tmp_dict)
         if not hasNewEvents:
             logger.info('No new events')
             return
